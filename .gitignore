@@ -1,0 +1,9 @@
+# Maven
+target/
+**/target/
+
+# IDE (opcional)
+.idea/
+.vscode/
+*.iml
+doc
