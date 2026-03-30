@@ -1,3 +1,7 @@
+## Introdução
+
+Em diversas situações em que é necessário o gerenciamento dinâmico de conjuntos de elementos, como no processamento de imagens, redes de computadores e bioinformática, o problema fundamental consiste em manter uma partição de um conjunto finito de n elementos em subconjuntos disjuntos, permitindo identificar rapidamente a qual grupo um elemento pertence e unir dois grupos distintos. Entretanto, com o aumento da complexidade computacional, não basta apenas resolver o problema, sendo necessário fazê-lo da forma mais eficiente possível, ou seja, utilizando menos recursos e com menor tempo de execução. Nesse contexto, utilizam-se técnicas avançadas de estruturas de dados, introduzidas por Robert Tarjan, com o objetivo de analisar suas diferentes complexidades, aplicando-as diretamente no algoritmo de Kruskal.
+
 ## Justificativa de Modularizacao da Implementacao Union by Rank
 
 Para atender ao enunciado, a implementacao do DSU foi organizada em modulos com responsabilidade unica:
