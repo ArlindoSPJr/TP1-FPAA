@@ -32,3 +32,19 @@ A logica da heuristica de rank fica isolada em um unico ponto (`UnionByRank`), f
 - `find` sem compressao de caminho: preserva a caracterizacao da versao Union by Rank solicitada no enunciado.
 
 Com isso, a implementacao respeita a restricao de nao utilizar bibliotecas prontas para a logica central do DSU e mantem a arquitetura necessaria para extensao e comparacao entre abordagens.
+
+## Justificativa de Modularizacao da Implementacao DSU Naive
+
+A implementacao `Naiv` representa a abordagem mais simples do DSU, sem qualquer heuristica de otimizacao:
+
+- Estrutura interna: apenas o vetor `parent`, onde cada elemento inicialmente aponta para si mesmo.
+- `find` sem compressao de caminho: percorre os ponteiros de pai ate atingir a raiz, resultando em complexidade `O(n)` no pior caso.
+- `union` sem rank: localiza as raizes dos dois elementos e faz a raiz de `x` apontar para a raiz de `y`, sem considerar alturas ou tamanhos das arvores.
+
+### Decisoes especificas da classe Naiv
+
+- Ausencia de vetor `rank`: desnecessario na abordagem naive, onde a uniao e feita sem criterio de balanceamento.
+- Complexidade esperada: `O(n)` para `find` e `union` no pior caso, caracterizando a versao baseline para comparacao com as demais abordagens.
+- Validacao de indices: mantida identica ao `UnionByRank` para consistencia e seguranca na integracao com o algoritmo de Kruskal.
+
+Essa implementacao serve como referencia de desempenho inferior, evidenciando o ganho trazido pelas heuristicas de union by rank e path compression nas demais variantes.
