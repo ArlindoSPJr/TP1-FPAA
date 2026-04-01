@@ -32,3 +32,11 @@ A logica da heuristica de rank fica isolada em um unico ponto (`UnionByRank`), f
 - `find` sem compressao de caminho: preserva a caracterizacao da versao Union by Rank solicitada no enunciado.
 
 Com isso, a implementacao respeita a restricao de nao utilizar bibliotecas prontas para a logica central do DSU e mantem a arquitetura necessaria para extensao e comparacao entre abordagens.
+
+## Decisões específicas da classe Naiv
+
+- Estrutura interna: vetor `parent` simples, onde cada elemento começa sendo seu próprio pai.
+- Regra de união: a raiz de um conjunto passa a apontar para a raiz do outro, sem qualquer heurística de balanceamento.
+- `find` sem compressão de caminho: percorre os pais até encontrar a raiz, sem otimizações.
+
+Com isso, a implementação Naiv serve como base de comparação para as demais variantes, mostrando os ganhos de eficiência trazidos por heurísticas mais avançadas.
