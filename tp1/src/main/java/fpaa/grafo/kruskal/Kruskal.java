@@ -8,7 +8,7 @@ import fpaa.algoritmos.interfaces.IDsu;
 import fpaa.grafo.model.Graph.Aresta;
 
 public class Kruskal {
-     public static int kruskal(int n, List<Aresta> edges, IDsu dsu) {
+    public static int kruskal(List<Aresta> edges, IDsu dsu) {
         Collections.sort(edges, Comparator.comparingInt(e -> e.peso));
 
         int total = 0;

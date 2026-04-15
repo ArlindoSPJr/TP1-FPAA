@@ -1,11 +1,16 @@
 package fpaa.algoritmos.dsu;
 
 import fpaa.algoritmos.interfaces.IDsu;
+import fpaa.algoritmos.interfaces.IDsuMetrics;
 
-public class UnionByRank implements IDsu {
+public class UnionByRank implements IDsu, IDsuMetrics {
 
     private final int[] parent;
     private final int[] rank;
+    private long parentReads;
+    private long parentWrites;
+    private long rankReads;
+    private long rankWrites;
 
     public UnionByRank(int n) {
         if (n <= 0) {
@@ -16,9 +21,10 @@ public class UnionByRank implements IDsu {
         this.rank = new int[n];
 
         for (int i = 0; i < n; i++) {
-            parent[i] = i;
-            rank[i] = 0;
+            writeParent(i, i);
+            writeRank(i, 0);
         }
+        resetMetrics();
     }
 
     @Override
@@ -33,13 +39,16 @@ public class UnionByRank implements IDsu {
             return;
         }
 
-        if (rank[rootX] < rank[rootY]) {
-            parent[rootX] = rootY;
-        } else if (rank[rootX] > rank[rootY]) {
-            parent[rootY] = rootX;
+        int rankX = readRank(rootX);
+        int rankY = readRank(rootY);
+
+        if (rankX < rankY) {
+            writeParent(rootX, rootY);
+        } else if (rankX > rankY) {
+            writeParent(rootY, rootX);
         } else {
-            parent[rootY] = rootX;
-            rank[rootX]++;
+            writeParent(rootY, rootX);
+            incrementRank(rootX);
         }
     }
 
@@ -48,11 +57,64 @@ public class UnionByRank implements IDsu {
         validateIndex(x);
 
         int current = x;
-        while (parent[current] != current) {
-            current = parent[current];
+        while (readParent(current) != current) {
+            current = readParent(current);
         }
 
         return current;
+    }
+
+    @Override
+    public void resetMetrics() {
+        parentReads = 0;
+        parentWrites = 0;
+        rankReads = 0;
+        rankWrites = 0;
+    }
+
+    @Override
+    public long getParentReads() {
+        return parentReads;
+    }
+
+    @Override
+    public long getParentWrites() {
+        return parentWrites;
+    }
+
+    @Override
+    public long getRankReads() {
+        return rankReads;
+    }
+
+    @Override
+    public long getRankWrites() {
+        return rankWrites;
+    }
+
+    private int readParent(int index) {
+        parentReads++;
+        return parent[index];
+    }
+
+    private void writeParent(int index, int value) {
+        parentWrites++;
+        parent[index] = value;
+    }
+
+    private int readRank(int index) {
+        rankReads++;
+        return rank[index];
+    }
+
+    private void writeRank(int index, int value) {
+        rankWrites++;
+        rank[index] = value;
+    }
+
+    private void incrementRank(int index) {
+        int current = readRank(index);
+        writeRank(index, current + 1);
     }
 
     private void validateIndex(int x) {
