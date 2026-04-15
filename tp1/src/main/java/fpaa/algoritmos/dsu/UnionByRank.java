@@ -5,26 +5,26 @@ import fpaa.algoritmos.interfaces.IDsuMetrics;
 
 public class UnionByRank implements IDsu, IDsuMetrics {
 
-    private final int[] parent;
+    private final int[] pai;
     private final int[] rank;
-    private long parentReads;
-    private long parentWrites;
-    private long rankReads;
-    private long rankWrites;
+    private long leiturasPai;
+    private long escritasPai;
+    private long leiturasRank;
+    private long escritasRank;
 
     public UnionByRank(int n) {
         if (n <= 0) {
-            throw new IllegalArgumentException("n must be greater than 0");
+            throw new IllegalArgumentException("n deve ser maior que 0");
         }
 
-        this.parent = new int[n];
+        this.pai = new int[n];
         this.rank = new int[n];
 
         for (int i = 0; i < n; i++) {
-            writeParent(i, i);
-            writeRank(i, 0);
+            escreverPai(i, i);
+            escreverRank(i, 0);
         }
-        resetMetrics();
+        resetarMetricas();
     }
 
     @Override
@@ -39,16 +39,16 @@ public class UnionByRank implements IDsu, IDsuMetrics {
             return;
         }
 
-        int rankX = readRank(rootX);
-        int rankY = readRank(rootY);
+        int rankX = lerRank(rootX);
+        int rankY = lerRank(rootY);
 
         if (rankX < rankY) {
-            writeParent(rootX, rootY);
+            escreverPai(rootX, rootY);
         } else if (rankX > rankY) {
-            writeParent(rootY, rootX);
+            escreverPai(rootY, rootX);
         } else {
-            writeParent(rootY, rootX);
-            incrementRank(rootX);
+            escreverPai(rootY, rootX);
+            incrementarRank(rootX);
         }
     }
 
@@ -57,69 +57,69 @@ public class UnionByRank implements IDsu, IDsuMetrics {
         validateIndex(x);
 
         int current = x;
-        while (readParent(current) != current) {
-            current = readParent(current);
+        while (lerPai(current) != current) {
+            current = lerPai(current);
         }
 
         return current;
     }
 
     @Override
-    public void resetMetrics() {
-        parentReads = 0;
-        parentWrites = 0;
-        rankReads = 0;
-        rankWrites = 0;
+    public void resetarMetricas() {
+        leiturasPai = 0;
+        escritasPai = 0;
+        leiturasRank = 0;
+        escritasRank = 0;
     }
 
     @Override
-    public long getParentReads() {
-        return parentReads;
+    public long getLeiturasPai() {
+        return leiturasPai;
     }
 
     @Override
-    public long getParentWrites() {
-        return parentWrites;
+    public long getEscritasPai() {
+        return escritasPai;
     }
 
     @Override
-    public long getRankReads() {
-        return rankReads;
+    public long getLeiturasRank() {
+        return leiturasRank;
     }
 
     @Override
-    public long getRankWrites() {
-        return rankWrites;
+    public long getEscritasRank() {
+        return escritasRank;
     }
 
-    private int readParent(int index) {
-        parentReads++;
-        return parent[index];
+    private int lerPai(int indice) {
+        leiturasPai++;
+        return pai[indice];
     }
 
-    private void writeParent(int index, int value) {
-        parentWrites++;
-        parent[index] = value;
+    private void escreverPai(int indice, int valor) {
+        escritasPai++;
+        pai[indice] = valor;
     }
 
-    private int readRank(int index) {
-        rankReads++;
-        return rank[index];
+    private int lerRank(int indice) {
+        leiturasRank++;
+        return rank[indice];
     }
 
-    private void writeRank(int index, int value) {
-        rankWrites++;
-        rank[index] = value;
+    private void escreverRank(int indice, int valor) {
+        escritasRank++;
+        rank[indice] = valor;
     }
 
-    private void incrementRank(int index) {
-        int current = readRank(index);
-        writeRank(index, current + 1);
+    private void incrementarRank(int indice) {
+        int atual = lerRank(indice);
+        escreverRank(indice, atual + 1);
     }
 
     private void validateIndex(int x) {
-        if (x < 0 || x >= parent.length) {
-            throw new IndexOutOfBoundsException("Index out of bounds: " + x);
+        if (x < 0 || x >= pai.length) {
+            throw new IndexOutOfBoundsException("Indice fora dos limites: " + x);
         }
     }
 }

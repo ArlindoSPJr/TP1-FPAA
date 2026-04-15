@@ -7,7 +7,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
@@ -20,135 +19,135 @@ import fpaa.grafo.kruskal.Kruskal;
 import fpaa.grafo.model.Graph;
 
 public class Main {
-    private static final int[] N_VALUES = {100, 500, 1000, 2000};
-    private static final int[] M_FACTORS = {2, 4, 8};
-    private static final int REPETITIONS = 3;
-    private static final long BASE_SEED = 12345L;
+    private static final int[] VALORES_N = {100, 500, 1000, 2000};
+    private static final int[] FATORES_M = {2, 4, 8};
+    private static final int REPETICOES = 3;
+    private static final long SEMENTE_BASE = 12345L;
 
     public static void main(String[] args) {
-        runBenchmark();
+        executarBenchmark();
     }
 
-    private static void runBenchmark() {
-        Path output = Paths.get("results", "dsu_benchmark.csv");
+    private static void executarBenchmark() {
+        Path saida = Paths.get("results", "dsu_benchmark.csv");
         try {
-            Files.createDirectories(output.getParent());
+            Files.createDirectories(saida.getParent());
         } catch (IOException e) {
-            throw new RuntimeException("Failed to create output directory", e);
+            throw new RuntimeException("Falha ao criar diretorio de saida", e);
         }
 
-        try (BufferedWriter writer = Files.newBufferedWriter(output)) {
-            writer.write("variant,n,m,rep,seed,time_ns,parent_reads,parent_writes,rank_reads,rank_writes,total_memory_accesses,mst_total");
-            writer.newLine();
+        try (BufferedWriter escritor = Files.newBufferedWriter(saida)) {
+            escritor.write("variante,n,m,repeticao,semente,tempo_ns,leituras_pai,escritas_pai,leituras_rank,escritas_rank,total_acessos_memoria,total_mst");
+            escritor.newLine();
 
-            for (int n : N_VALUES) {
-                int maxEdges = n * (n - 1) / 2;
+            for (int n : VALORES_N) {
+                int maxArestas = n * (n - 1) / 2;
 
-                for (int factor : M_FACTORS) {
-                    int m = Math.min(maxEdges, n * factor);
+                for (int fator : FATORES_M) {
+                    int m = Math.min(maxArestas, n * fator);
 
-                    for (int rep = 1; rep <= REPETITIONS; rep++) {
-                        long seed = BASE_SEED + (long) n * 1_000_000L + (long) m * 1_000L + rep;
-                        Graph graph = generateRandomConnectedGraph(n, m, seed);
+                    for (int repeticao = 1; repeticao <= REPETICOES; repeticao++) {
+                        long semente = SEMENTE_BASE + (long) n * 1_000_000L + (long) m * 1_000L + repeticao;
+                        Graph grafo = gerarGrafoAleatorioConexo(n, m, semente);
 
-                        writeBenchmarkRow(writer, "Naive", new Naiv(n), graph, n, m, rep, seed);
-                        writeBenchmarkRow(writer, "UnionByRank", new UnionByRank(n), graph, n, m, rep, seed);
-                        writeBenchmarkRow(writer, "FullTarjan", new FullTarjan(n), graph, n, m, rep, seed);
+                        escreverLinhaBenchmark(escritor, "Naive", new Naiv(n), grafo, n, m, repeticao, semente);
+                        escreverLinhaBenchmark(escritor, "UnionByRank", new UnionByRank(n), grafo, n, m, repeticao, semente);
+                        escreverLinhaBenchmark(escritor, "FullTarjan", new FullTarjan(n), grafo, n, m, repeticao, semente);
                     }
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("Failed to write benchmark CSV", e);
+            throw new RuntimeException("Falha ao escrever CSV do benchmark", e);
         }
 
-        System.out.println("Benchmark finished. CSV generated at: " + output.toString());
+        System.out.println("Benchmark finalizado. CSV gerado em: " + saida.toString());
     }
 
-    private static void writeBenchmarkRow(
-        BufferedWriter writer,
-        String variant,
+    private static void escreverLinhaBenchmark(
+        BufferedWriter escritor,
+        String variante,
         IDsu dsu,
-        Graph graph,
+        Graph grafo,
         int n,
         int m,
-        int rep,
-        long seed
+        int repeticao,
+        long semente
     ) throws IOException {
-        IDsuMetrics metrics = (IDsuMetrics) dsu;
-        metrics.resetMetrics();
+        IDsuMetrics metricas = (IDsuMetrics) dsu;
+        metricas.resetarMetricas();
 
-        long start = System.nanoTime();
-        int mst = Kruskal.kruskal(new ArrayList<>(graph.arestas), dsu);
-        long elapsed = System.nanoTime() - start;
+        long inicio = System.nanoTime();
+        int mst = Kruskal.kruskal(new ArrayList<>(grafo.arestas), dsu);
+        long tempoDecorrido = System.nanoTime() - inicio;
 
-        writer.write(
-            variant + ","
+        escritor.write(
+            variante + ","
                 + n + ","
                 + m + ","
-                + rep + ","
-                + seed + ","
-                + elapsed + ","
-                + metrics.getParentReads() + ","
-                + metrics.getParentWrites() + ","
-                + metrics.getRankReads() + ","
-                + metrics.getRankWrites() + ","
-                + metrics.getTotalMemoryAccesses() + ","
+                + repeticao + ","
+                + semente + ","
+                + tempoDecorrido + ","
+                + metricas.getLeiturasPai() + ","
+                + metricas.getEscritasPai() + ","
+                + metricas.getLeiturasRank() + ","
+                + metricas.getEscritasRank() + ","
+                + metricas.getTotalAcessosMemoria() + ","
                 + mst
         );
-        writer.newLine();
+        escritor.newLine();
     }
 
-    private static Graph generateRandomConnectedGraph(int n, int m, long seed) {
+    private static Graph gerarGrafoAleatorioConexo(int n, int m, long semente) {
         if (n <= 0) {
-            throw new IllegalArgumentException("n must be greater than 0");
+            throw new IllegalArgumentException("n deve ser maior que 0");
         }
 
-        int minEdges = n - 1;
-        int maxEdges = n * (n - 1) / 2;
+        int minArestas = n - 1;
+        int maxArestas = n * (n - 1) / 2;
 
-        if (m < minEdges || m > maxEdges) {
-            throw new IllegalArgumentException("m must be in [n-1, n*(n-1)/2]");
+        if (m < minArestas || m > maxArestas) {
+            throw new IllegalArgumentException("m deve estar em [n-1, n*(n-1)/2]");
         }
 
-        Graph graph = new Graph(n);
-        Random random = new Random(seed);
-        Set<Long> usedEdges = new HashSet<>();
+        Graph grafo = new Graph(n);
+        Random aleatorio = new Random(semente);
+        Set<Long> arestasUsadas = new HashSet<>();
 
         for (int v = 1; v < n; v++) {
-            int u = random.nextInt(v);
-            int w = randomWeight(random);
-            graph.adicionarAresta(u, v, w);
-            usedEdges.add(edgeKey(u, v));
+            int u = aleatorio.nextInt(v);
+            int w = gerarPesoAleatorio(aleatorio);
+            grafo.adicionarAresta(u, v, w);
+            arestasUsadas.add(chaveAresta(u, v));
         }
 
-        while (graph.arestas.size() < m) {
-            int u = random.nextInt(n);
-            int v = random.nextInt(n);
+        while (grafo.arestas.size() < m) {
+            int u = aleatorio.nextInt(n);
+            int v = aleatorio.nextInt(n);
 
             if (u == v) {
                 continue;
             }
 
-            long key = edgeKey(u, v);
-            if (usedEdges.contains(key)) {
+            long chave = chaveAresta(u, v);
+            if (arestasUsadas.contains(chave)) {
                 continue;
             }
 
-            int w = randomWeight(random);
-            graph.adicionarAresta(u, v, w);
-            usedEdges.add(key);
+            int w = gerarPesoAleatorio(aleatorio);
+            grafo.adicionarAresta(u, v, w);
+            arestasUsadas.add(chave);
         }
 
-        return graph;
+        return grafo;
     }
 
-    private static long edgeKey(int u, int v) {
+    private static long chaveAresta(int u, int v) {
         int a = Math.min(u, v);
         int b = Math.max(u, v);
         return (((long) a) << 32) | (b & 0xffffffffL);
     }
 
-    private static int randomWeight(Random random) {
-        return random.nextInt(1000) + 1;
+    private static int gerarPesoAleatorio(Random aleatorio) {
+        return aleatorio.nextInt(1000) + 1;
     }
 }

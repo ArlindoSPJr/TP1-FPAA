@@ -1,17 +1,17 @@
 package fpaa.algoritmos.interfaces;
 
 public interface IDsuMetrics {
-    void resetMetrics();
+    void resetarMetricas();
 
-    long getParentReads();
+    long getLeiturasPai();
 
-    long getParentWrites();
+    long getEscritasPai();
 
-    long getRankReads();
+    long getLeiturasRank();
 
-    long getRankWrites();
+    long getEscritasRank();
 
-    default long getTotalMemoryAccesses() {
-        return getParentReads() + getParentWrites() + getRankReads() + getRankWrites();
+    default long getTotalAcessosMemoria() {
+        return getLeiturasPai() + getEscritasPai() + getLeiturasRank() + getEscritasRank();
     }
 }
