@@ -11,7 +11,7 @@ import java.util.Random;
 import java.util.Set;
 
 import fpaa.algoritmos.dsu.FullTarjan;
-import fpaa.algoritmos.dsu.Naiv;
+import fpaa.algoritmos.dsu.Naive;
 import fpaa.algoritmos.dsu.UnionByRank;
 import fpaa.algoritmos.interfaces.IDsu;
 import fpaa.algoritmos.interfaces.IDsuMetrics;
@@ -50,7 +50,7 @@ public class Main {
                         long semente = SEMENTE_BASE + (long) n * 1_000_000L + (long) m * 1_000L + repeticao;
                         Graph grafo = gerarGrafoAleatorioConexo(n, m, semente);
 
-                        escreverLinhaBenchmark(escritor, "Naive", new Naiv(n), grafo, n, m, repeticao, semente);
+                        escreverLinhaBenchmark(escritor, "Naive", new Naive(n), grafo, n, m, repeticao, semente);
                         escreverLinhaBenchmark(escritor, "UnionByRank", new UnionByRank(n), grafo, n, m, repeticao, semente);
                         escreverLinhaBenchmark(escritor, "FullTarjan", new FullTarjan(n), grafo, n, m, repeticao, semente);
                     }

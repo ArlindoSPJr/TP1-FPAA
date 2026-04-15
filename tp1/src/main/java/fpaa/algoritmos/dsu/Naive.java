@@ -3,12 +3,12 @@ package fpaa.algoritmos.dsu;
 import fpaa.algoritmos.interfaces.IDsu;
 import fpaa.algoritmos.interfaces.IDsuMetrics;
 
-public class Naiv implements IDsu, IDsuMetrics {
+public class Naive implements IDsu, IDsuMetrics {
     private final int[] pai;
     private long leiturasPai;
     private long escritasPai;
 
-    public Naiv(int n) {
+    public Naive(int n) {
         if (n <= 0) {
             throw new IllegalArgumentException("n deve ser maior que 0");
         }
