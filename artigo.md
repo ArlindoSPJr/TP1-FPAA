@@ -2,6 +2,34 @@
 
 Em diversas situações em que é necessário o gerenciamento dinâmico de conjuntos de elementos, como no processamento de imagens, redes de computadores e bioinformática, o problema fundamental consiste em manter uma partição de um conjunto finito de n elementos em subconjuntos disjuntos, permitindo identificar rapidamente a qual grupo um elemento pertence e unir dois grupos distintos. Entretanto, com o aumento da complexidade computacional, não basta apenas resolver o problema, sendo necessário fazê-lo da forma mais eficiente possível, ou seja, utilizando menos recursos e com menor tempo de execução. Nesse contexto, utilizam-se técnicas avançadas de estruturas de dados, introduzidas por Robert Tarjan, com o objetivo de analisar suas diferentes complexidades, aplicando-as diretamente no algoritmo de Kruskal.
 
+## Metodologia Experimental Atual
+
+A comparacao foi conduzida com tres variantes de DSU:
+
+- Naive
+- UnionByRank
+- FullTarjan
+
+Todas as variantes foram aplicadas ao mesmo fluxo do Kruskal para manter isonomia entre os cenarios.
+
+Configuracao do benchmark utilizada nesta fase:
+
+- Densidade fixa: `m = 16n`
+- Tamanhos de entrada: `n = {2500, 5000, 10000, 20000, 40000}`
+- Repeticoes por cenario: 3
+
+As saidas finais sao dois CSVs agregados por media:
+
+1. `results/tempo/tempo_densidade_16.csv`
+2. `results/memoria/memoria_densidade_16.csv`
+
+Campos finais utilizados nos graficos:
+
+- Tempo: `variante,n,densidade,media_tempo_ns`
+- Memoria: `variante,n,densidade,media_memoria`
+
+Esse formato reduz ruido de repeticao e facilita a construcao de dois graficos comparativos (tempo e memoria), mantendo alinhamento com o enunciado.
+
 ## Justificativa de Modularizacao da Implementacao Union by Rank
 
 Para atender ao enunciado, a implementacao do DSU foi organizada em modulos com responsabilidade unica:
@@ -33,10 +61,21 @@ A logica da heuristica de rank fica isolada em um unico ponto (`UnionByRank`), f
 
 Com isso, a implementacao respeita a restricao de nao utilizar bibliotecas prontas para a logica central do DSU e mantem a arquitetura necessaria para extensao e comparacao entre abordagens.
 
-## Decisões específicas da classe Naiv
+## Decisoes especificas da classe Naive
 
 - Estrutura interna: vetor `parent` simples, onde cada elemento começa sendo seu próprio pai.
 - Regra de união: a raiz de um conjunto passa a apontar para a raiz do outro, sem qualquer heurística de balanceamento.
 - `find` sem compressão de caminho: percorre os pais até encontrar a raiz, sem otimizações.
 
-Com isso, a implementação Naiv serve como base de comparação para as demais variantes, mostrando os ganhos de eficiência trazidos por heurísticas mais avançadas.
+Com isso, a implementacao Naive serve como base de comparacao para as demais variantes, mostrando os ganhos de eficiencia trazidos por heuristicas mais avancadas.
+
+## Observacao de Aderencia ao Enunciado
+
+No escopo de codigo, os requisitos tecnicos principais estao cobertos:
+
+1. Tres implementacoes DSU exigidas
+2. Integracao com Kruskal
+3. Medicao de tempo e memoria
+4. Base de dados pronta para dois graficos comparativos
+
+As pendencias restantes sao de entrega textual e apresentacao dos graficos no artigo final SBC.
