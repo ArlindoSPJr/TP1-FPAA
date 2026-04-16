@@ -5,8 +5,10 @@ import java.util.List;
 
 public class Graph {
 
-    public static class Aresta  {
-        public int origem, destino, peso;
+    public static class Aresta {
+        public int origem;
+        public int destino;
+        public int peso;
  
         Aresta(int origem, int destino, int peso) {
             this.origem = origem;
@@ -30,16 +32,19 @@ public class Graph {
     }
 
     public void adicionarAresta(int origem, int destino, int peso) {
+        validateVertex(origem);
+        validateVertex(destino);
         arestas.add(new Aresta(origem, destino, peso));
     }
 
-    public void exibir() {
-        System.out.println("=== Grafo (Lista de Arestas) ===");
-        System.out.println("Vértices: " + numVertices);
-        System.out.println("Arestas:  " + arestas.size());
-        for (Aresta a : arestas) {
-            System.out.println("  " + a);
+    private void validateVertex(int v) {
+        if (v < 0 || v >= numVertices) {
+            throw new IllegalArgumentException("Vertice invalido: " + v);
         }
+    }
+
+    public int getNumVertices() {
+        return numVertices;
     }
 
 }

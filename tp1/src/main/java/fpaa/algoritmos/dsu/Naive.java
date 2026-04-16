@@ -3,64 +3,41 @@ package fpaa.algoritmos.dsu;
 import fpaa.algoritmos.interfaces.IDsu;
 import fpaa.algoritmos.interfaces.IDsuMetrics;
 
-public class UnionByRank implements IDsu, IDsuMetrics {
-
+public class Naive implements IDsu, IDsuMetrics {
     private final int[] pai;
-    private final int[] rank;
     private long leiturasPai;
     private long escritasPai;
-    private long leiturasRank;
-    private long escritasRank;
 
-    public UnionByRank(int n) {
+    public Naive(int n) {
         if (n <= 0) {
             throw new IllegalArgumentException("n deve ser maior que 0");
         }
-
         this.pai = new int[n];
-        this.rank = new int[n];
-
         for (int i = 0; i < n; i++) {
             escreverPai(i, i);
-            escreverRank(i, 0);
         }
         resetarMetricas();
     }
 
+    // Naive: faz um apontar para o outro, sem balanceamento
     @Override
     public void union(int x, int y) {
         validateIndex(x);
         validateIndex(y);
-
         int rootX = find(x);
         int rootY = find(y);
-
-        if (rootX == rootY) {
-            return;
-        }
-
-        int rankX = lerRank(rootX);
-        int rankY = lerRank(rootY);
-
-        if (rankX < rankY) {
-            escreverPai(rootX, rootY);
-        } else if (rankX > rankY) {
-            escreverPai(rootY, rootX);
-        } else {
-            escreverPai(rootY, rootX);
-            incrementarRank(rootX);
-        }
+        if (rootX == rootY) return;
+        escreverPai(rootY, rootX);
     }
 
+    // Naive: vai seguindo os pais até achar a raiz
     @Override
     public int find(int x) {
         validateIndex(x);
-
         int current = x;
         while (lerPai(current) != current) {
             current = lerPai(current);
         }
-
         return current;
     }
 
@@ -68,8 +45,6 @@ public class UnionByRank implements IDsu, IDsuMetrics {
     public void resetarMetricas() {
         leiturasPai = 0;
         escritasPai = 0;
-        leiturasRank = 0;
-        escritasRank = 0;
     }
 
     @Override
@@ -84,12 +59,12 @@ public class UnionByRank implements IDsu, IDsuMetrics {
 
     @Override
     public long getLeiturasRank() {
-        return leiturasRank;
+        return 0;
     }
 
     @Override
     public long getEscritasRank() {
-        return escritasRank;
+        return 0;
     }
 
     private int lerPai(int indice) {
@@ -100,21 +75,6 @@ public class UnionByRank implements IDsu, IDsuMetrics {
     private void escreverPai(int indice, int valor) {
         escritasPai++;
         pai[indice] = valor;
-    }
-
-    private int lerRank(int indice) {
-        leiturasRank++;
-        return rank[indice];
-    }
-
-    private void escreverRank(int indice, int valor) {
-        escritasRank++;
-        rank[indice] = valor;
-    }
-
-    private void incrementarRank(int indice) {
-        int atual = lerRank(indice);
-        escreverRank(indice, atual + 1);
     }
 
     private void validateIndex(int x) {
