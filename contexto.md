@@ -1,161 +1,83 @@
 # Contexto do Trabalho
 
-## 1) O que estamos fazendo neste trabalho
+## 1) Objetivo pratico desta versao
 
-Este trabalho implementa e compara tres variantes da estrutura Disjoint Set Union (DSU), tambem chamada Union-Find:
+O projeto implementa e compara tres variantes de DSU (Union-Find) no contexto do Kruskal:
 
-1. Naive (sem heuristicas)
-2. Union by Rank
-3. Full Tarjan (Union by Rank + Path Compression)
+1. Naive
+2. UnionByRank
+3. FullTarjan (UnionByRank + Path Compression)
 
-O objetivo principal e mostrar, na pratica, como as otimizações mudam o custo das operacoes `find` e `union` quando o tamanho do problema cresce.
+O foco desta abordagem e gerar dados limpos para **dois graficos finais**:
 
-Para atender ao enunciado, escolhemos usar a DSU no contexto do algoritmo de Kruskal (arvore geradora minima), que e uma aplicacao classica de DSU.
-
----
-
-## 2) O que significa benchmark neste trabalho
-
-Benchmark e uma execucao controlada para medir desempenho.
-
-Neste projeto, benchmark significa:
-
-1. Gerar varios grafos com tamanhos controlados (`n` vertices e `m` arestas)
-2. Rodar o Kruskal com cada variante de DSU nas mesmas entradas
-3. Medir tempo de execucao
-4. Medir acessos a memoria internos da DSU
-5. Salvar tudo em CSV para gerar graficos comparativos depois
-
-Em resumo: benchmark nao e um algoritmo novo. E o procedimento de experimento para comparar algoritmos em condicoes equivalentes.
+1. Grafico de tempo
+2. Grafico de memoria
 
 ---
 
-## 3) O que estamos medindo exatamente
+## 2) Metodologia experimental atual
 
-Medimos duas familias de metricas:
+Para simplificar a montagem dos graficos e reduzir erros manuais, o benchmark foi padronizado com:
 
-1. Tempo de execucao (`tempo_ns`)
-2. Acessos a memoria da DSU
+1. Densidade fixa: `densidade = 16` (isto e, `m = 16n`)
+2. Tamanhos de entrada: `n = {2500, 5000, 10000, 20000, 40000}`
+3. Repeticoes por cenario: `3`
 
-Os acessos a memoria sao contados por contadores internos nas estruturas:
-
-1. `leituras_pai`
-2. `escritas_pai`
-3. `leituras_rank`
-4. `escritas_rank`
-5. `total_acessos_memoria` (soma dos quatro)
-
-Por que isso esta alinhado ao enunciado?
-
-Porque o enunciado pede explicitamente tempo e numero de acessos a memoria (ou operacoes de ponteiros). Em DSU, os acessos relevantes ocorrem justamente nos vetores internos `pai` e `rank`.
+As repeticoes sao agregadas por media no proprio benchmark.
 
 ---
 
-## 4) Escolhas de implementacao e justificativas
+## 3) Arquivos de saida finais
 
-### 4.1 Escolha do cenario: Kruskal
+A execucao atual gera **somente 2 CSVs finais**:
 
-Escolhemos Kruskal porque:
+1. `tp1/results/tempo/tempo_densidade_16.csv`
+2. `tp1/results/memoria/memoria_densidade_16.csv`
 
-1. E permitido pelo enunciado
-2. E uma aplicacao direta e classica de DSU
-3. Permite comparar as tres variantes em um problema real de grafos
-
-### 4.2 Modularizacao
-
-A modularizacao adotada foi:
-
-1. Interface comum para DSU (`IDsu`)
-2. Tres implementacoes intercambiaveis (`Naiv`, `UnionByRank`, `FullTarjan`)
-3. Algoritmo de Kruskal desacoplado da implementacao concreta de DSU
-4. Modelo de grafo separado (`Graph`)
-5. Execucao de benchmark centralizada em `Main`
-
-Beneficio: conseguimos trocar a DSU sem alterar o Kruskal, o que facilita comparacoes justas e extensoes futuras.
-
-### 4.3 Coleta de metricas
-
-A coleta foi implementada por interface especifica (`IDsuMetrics`) com contadores nas classes DSU.
-
-Beneficio: metricas ficam padronizadas entre variantes e o benchmark consegue extrair os valores de forma uniforme.
+Os CSVs antigos na pasta `results/tempo` e `results/memoria` sao removidos automaticamente antes de cada nova execucao.
 
 ---
 
-## 5) Como o experimento esta organizado
+## 4) Campos de cada CSV
 
-No benchmark atual:
+### CSV de tempo
 
-1. Variamos `n` (tamanho do conjunto de vertices)
-2. Variamos `m` (numero de arestas)
-3. Repetimos cada cenario para reduzir ruido
-4. Mantemos semente pseudoaleatoria para reprodutibilidade
-5. Gravamos uma linha por execucao no CSV
+`variante,n,densidade,media_tempo_ns`
 
-Colunas do CSV:
+### CSV de memoria
 
-1. `variante`
-2. `n`
-3. `m`
-4. `repeticao`
-5. `semente`
-6. `tempo_ns`
-7. `leituras_pai`
-8. `escritas_pai`
-9. `leituras_rank`
-10. `escritas_rank`
-11. `total_acessos_memoria`
-12. `total_mst`
+`variante,n,densidade,media_memoria`
+
+Cada CSV possui:
+
+1. 5 valores de `n`
+2. 3 variantes
+
+Total: `15` linhas de dados por arquivo.
 
 ---
 
-## 6) Atendimento item a item do enunciado
+## 5) Coerencia com o enunciado
 
-### Item 4 - Implementacoes requeridas
+No escopo de implementacao de codigo, a versao atual permanece alinhada:
 
-Atendido.
+1. Implementa as 3 variantes exigidas de DSU
+2. Aplica DSU no Kruskal
+3. Mede tempo e acessos de memoria
+4. Entrega dados comparativos para os dois graficos
 
-1. Naive implementada
-2. Union by Rank implementada
-3. Full Tarjan implementada com compressao de caminho
+Observacao importante:
 
-### Item 5 - Restricoes e modularizacao
-
-Atendido no codigo.
-
-1. Linguagem Java
-2. Sem uso de biblioteca pronta de DSU
-3. Projeto modular com interface + implementacoes + algoritmo consumidor
-
-Observacao: descricao detalhada do ambiente (hardware/JVM/flags) deve ser colocada no relatorio apos executar na maquina final.
-
-### Item 6 - Analise experimental
-
-Atendido na parte de codigo.
-
-1. Medicao de tempo implementada
-2. Medicao de acessos a memoria implementada
-3. Variacao de `n` e `m` implementada
-4. Exportacao para CSV implementada
-
-Observacao: os graficos comparativos ainda precisam ser gerados fora do codigo a partir do CSV (como pede o enunciado).
-
-### Itens 8 e 9 - Relatorio e avaliacao
-
-Parcialmente fora do escopo do codigo-fonte.
-
-1. O codigo ja gera os dados necessarios
-2. Falta consolidar no artigo: metodologia, ambiente, graficos, discussao e conclusao
+1. O trabalho completo ainda exige a parte externa ao codigo (graficos no artigo, discussao teorica e descricao de ambiente de execucao), conforme o enunciado.
 
 ---
 
-## 7) Resumo final (visao didatica)
+## 6) Leitura rapida dos resultados
 
-Nosso trabalho implementa tres DSUs, aplica as tres no Kruskal, mede tempo e custo de memoria, e salva resultados em CSV para analise comparativa.
+Com os CSVs finais, a comparacao por `n` fica direta:
 
-Isso permite demonstrar, de forma empirica e reproduzivel, a diferenca de desempenho entre:
+1. Naive tende a escalar pior em tempo e memoria
+2. UnionByRank e FullTarjan ficam significativamente melhores
+3. FullTarjan tende a usar menos memoria e competir fortemente em tempo
 
-1. abordagem ingenua
-2. heuristica por rank
-3. heuristica por rank + compressao de caminho
-
-Assim, atendemos o nucleo tecnico do enunciado e deixamos pronta a base para os graficos e a discussao final no artigo.
+Isso facilita mostrar, na discussao do artigo, o impacto das heuristicas de balanceamento e compressao de caminho.

@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 
@@ -19,82 +20,136 @@ import fpaa.grafo.kruskal.Kruskal;
 import fpaa.grafo.model.Graph;
 
 public class Main {
-    private static final int[] VALORES_N = {100, 500, 1000, 2000};
-    private static final int[] FATORES_M = {2, 4, 8};
+    private static final int[] VALORES_N = { 2500, 5000, 10000, 20000, 40000 };
+    private static final int[] FATORES_M = { 16 };
     private static final int REPETICOES = 3;
     private static final long SEMENTE_BASE = 12345L;
+    private static final String[] VARIANTES = { "Naive", "UnionByRank", "FullTarjan" };
 
     public static void main(String[] args) {
         executarBenchmark();
     }
 
     private static void executarBenchmark() {
-        Path saida = Paths.get("results", "dsu_benchmark.csv");
+        if (FATORES_M.length != 1) {
+            throw new IllegalStateException("Este perfil exige exatamente uma densidade fixa");
+        }
+
+        int densidade = FATORES_M[0];
+        Path pastaTempo = Paths.get("results", "tempo");
+        Path pastaMemoria = Paths.get("results", "memoria");
+        long[][] somaTempo = new long[VALORES_N.length][VARIANTES.length];
+        long[][] somaMemoria = new long[VALORES_N.length][VARIANTES.length];
+
         try {
-            Files.createDirectories(saida.getParent());
+            Files.createDirectories(pastaTempo);
+            Files.createDirectories(pastaMemoria);
+            limparCsvsAntigos(pastaTempo);
+            limparCsvsAntigos(pastaMemoria);
         } catch (IOException e) {
             throw new RuntimeException("Falha ao criar diretorio de saida", e);
         }
 
-        try (BufferedWriter escritor = Files.newBufferedWriter(saida)) {
-            escritor.write("variante,n,m,repeticao,semente,tempo_ns,leituras_pai,escritas_pai,leituras_rank,escritas_rank,total_acessos_memoria,total_mst");
-            escritor.newLine();
-
-            for (int n : VALORES_N) {
+        try {
+            for (int i = 0; i < VALORES_N.length; i++) {
+                int n = VALORES_N[i];
                 int maxArestas = n * (n - 1) / 2;
+                int m = Math.min(maxArestas, n * densidade);
 
-                for (int fator : FATORES_M) {
-                    int m = Math.min(maxArestas, n * fator);
+                for (int repeticao = 1; repeticao <= REPETICOES; repeticao++) {
+                    long semente = SEMENTE_BASE + (long) n * 1_000_000L + (long) m * 1_000L + repeticao;
+                    Graph grafo = gerarGrafoAleatorioConexo(n, m, semente);
 
-                    for (int repeticao = 1; repeticao <= REPETICOES; repeticao++) {
-                        long semente = SEMENTE_BASE + (long) n * 1_000_000L + (long) m * 1_000L + repeticao;
-                        Graph grafo = gerarGrafoAleatorioConexo(n, m, semente);
+                    Medicao medicaoNaive = medirExecucao(new Naive(n), grafo);
+                    somaTempo[i][0] += medicaoNaive.tempoNs;
+                    somaMemoria[i][0] += medicaoNaive.totalMemoria;
 
-                        escreverLinhaBenchmark(escritor, "Naive", new Naive(n), grafo, n, m, repeticao, semente);
-                        escreverLinhaBenchmark(escritor, "UnionByRank", new UnionByRank(n), grafo, n, m, repeticao, semente);
-                        escreverLinhaBenchmark(escritor, "FullTarjan", new FullTarjan(n), grafo, n, m, repeticao, semente);
-                    }
+                    Medicao medicaoUnionByRank = medirExecucao(new UnionByRank(n), grafo);
+                    somaTempo[i][1] += medicaoUnionByRank.tempoNs;
+                    somaMemoria[i][1] += medicaoUnionByRank.totalMemoria;
+
+                    Medicao medicaoFullTarjan = medirExecucao(new FullTarjan(n), grafo);
+                    somaTempo[i][2] += medicaoFullTarjan.tempoNs;
+                    somaMemoria[i][2] += medicaoFullTarjan.totalMemoria;
                 }
             }
+
+            escreverCsvTempo(pastaTempo.resolve("tempo_densidade_" + densidade + ".csv"), densidade, somaTempo);
+            escreverCsvMemoria(pastaMemoria.resolve("memoria_densidade_" + densidade + ".csv"), densidade, somaMemoria);
         } catch (IOException e) {
-            throw new RuntimeException("Falha ao escrever CSV do benchmark", e);
+            throw new RuntimeException("Falha ao escrever CSVs do benchmark", e);
         }
 
-        System.out.println("Benchmark finalizado. CSV gerado em: " + saida.toString());
+        System.out.println("Benchmark finalizado. CSVs finais gerados em: results/tempo e results/memoria");
     }
 
-    private static void escreverLinhaBenchmark(
-        BufferedWriter escritor,
-        String variante,
-        IDsu dsu,
-        Graph grafo,
-        int n,
-        int m,
-        int repeticao,
-        long semente
-    ) throws IOException {
+    private static void limparCsvsAntigos(Path pasta) throws IOException {
+        try (var stream = Files.list(pasta)) {
+            for (Path arquivo : (Iterable<Path>) stream::iterator) {
+                if (Files.isRegularFile(arquivo) && arquivo.toString().endsWith(".csv")) {
+                    Files.delete(arquivo);
+                }
+            }
+        }
+    }
+
+    private static Medicao medirExecucao(IDsu dsu, Graph grafo) {
         IDsuMetrics metricas = (IDsuMetrics) dsu;
         metricas.resetarMetricas();
 
         long inicio = System.nanoTime();
-        int mst = Kruskal.kruskal(new ArrayList<>(grafo.arestas), dsu);
+        Kruskal.kruskal(new ArrayList<>(grafo.arestas), dsu);
         long tempoDecorrido = System.nanoTime() - inicio;
 
-        escritor.write(
-            variante + ","
-                + n + ","
-                + m + ","
-                + repeticao + ","
-                + semente + ","
-                + tempoDecorrido + ","
-                + metricas.getLeiturasPai() + ","
-                + metricas.getEscritasPai() + ","
-                + metricas.getLeiturasRank() + ","
-                + metricas.getEscritasRank() + ","
-                + metricas.getTotalAcessosMemoria() + ","
-                + mst
-        );
-        escritor.newLine();
+        return new Medicao(tempoDecorrido, metricas.getTotalAcessosMemoria());
+    }
+
+    private static void escreverCsvTempo(Path arquivo, int densidade, long[][] somaTempo) throws IOException {
+        try (BufferedWriter escritor = Files.newBufferedWriter(arquivo)) {
+            escritor.write("variante,n,densidade,media_tempo_ns");
+            escritor.newLine();
+
+            for (int i = 0; i < VALORES_N.length; i++) {
+                for (int j = 0; j < VARIANTES.length; j++) {
+                    double media = somaTempo[i][j] / (double) REPETICOES;
+                    escritor.write(
+                            VARIANTES[j] + ","
+                                    + VALORES_N[i] + ","
+                                    + densidade + ","
+                                    + String.format(Locale.US, "%.2f", media));
+                    escritor.newLine();
+                }
+            }
+        }
+    }
+
+    private static void escreverCsvMemoria(Path arquivo, int densidade, long[][] somaMemoria) throws IOException {
+        try (BufferedWriter escritor = Files.newBufferedWriter(arquivo)) {
+            escritor.write("variante,n,densidade,media_memoria");
+            escritor.newLine();
+
+            for (int i = 0; i < VALORES_N.length; i++) {
+                for (int j = 0; j < VARIANTES.length; j++) {
+                    double media = somaMemoria[i][j] / (double) REPETICOES;
+                    escritor.write(
+                            VARIANTES[j] + ","
+                                    + VALORES_N[i] + ","
+                                    + densidade + ","
+                                    + String.format(Locale.US, "%.2f", media));
+                    escritor.newLine();
+                }
+            }
+        }
+    }
+
+    private static class Medicao {
+        private final long tempoNs;
+        private final long totalMemoria;
+
+        private Medicao(long tempoNs, long totalMemoria) {
+            this.tempoNs = tempoNs;
+            this.totalMemoria = totalMemoria;
+        }
     }
 
     private static Graph gerarGrafoAleatorioConexo(int n, int m, long semente) {

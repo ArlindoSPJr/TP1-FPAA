@@ -1,6 +1,6 @@
 # Roteiro de Testes
 
-Este documento descreve o passo a passo para validar se a implementacao esta correta e pronta para gerar os dados do trabalho.
+Este documento descreve o passo a passo para validar se a implementacao esta correta e pronta para gerar os **2 CSVs finais** usados nos graficos do trabalho.
 
 ## 1) Pre-requisitos
 
@@ -55,7 +55,7 @@ Sequencia conceitual:
 
 Executar o mesmo caso para:
 
-1. Naiv
+1. Naive
 2. UnionByRank
 3. FullTarjan
 
@@ -105,7 +105,7 @@ Resultado esperado:
 
 ---
 
-## 5) Teste do benchmark e geracao do CSV
+## 5) Teste do benchmark e geracao dos CSVs finais
 
 Objetivo: validar a parte experimental exigida pelo enunciado.
 
@@ -115,44 +115,54 @@ Passos:
 
 ```bash
 cd tp1
-mvn exec:java -Dexec.mainClass=fpaa.Main
+mvn exec:java "-Dexec.mainClass=fpaa.Main"
 ```
 
-2. Verificar se o arquivo foi criado:
+2. Verificar se os arquivos finais foram criados:
+
+- `results/tempo/tempo_densidade_16.csv`
+- `results/memoria/memoria_densidade_16.csv`
+
+3. Inspecionar inicio dos arquivos:
 
 ```bash
-ls -l results/dsu_benchmark.csv
-```
-
-3. Inspecionar inicio do arquivo:
-
-```bash
-head -n 5 results/dsu_benchmark.csv
+Get-Content results/tempo/tempo_densidade_16.csv -TotalCount 5
+Get-Content results/memoria/memoria_densidade_16.csv -TotalCount 5
 ```
 
 Resultado esperado:
 
-1. Arquivo `results/dsu_benchmark.csv` existe
-2. Cabecalho contem as colunas esperadas
-3. Ha linhas de dados para as tres variantes
+1. Existem apenas os 2 CSVs finais de saida para o ciclo atual
+2. Cabecalhos estao no formato final:
+   - Tempo: `variante,n,densidade,media_tempo_ns`
+   - Memoria: `variante,n,densidade,media_memoria`
+3. Cada arquivo possui 15 linhas de dados (5 tamanhos x 3 variantes)
 
 ---
 
-## 6) Testes de consistencia dos dados do CSV
+## 6) Testes de consistencia dos dados finais
 
 Objetivo: validar se os valores fazem sentido para analise posterior.
 
 Verificacoes:
 
-1. `tempo_ns > 0` em todas as linhas
-2. `total_acessos_memoria = leituras_pai + escritas_pai + leituras_rank + escritas_rank`
-3. Naive tende a ter `leituras_rank = 0` e `escritas_rank = 0`
-4. `total_mst` para o mesmo grafo (mesma semente, n, m, repeticao) deve ser igual entre variantes
+1. `media_tempo_ns > 0` em todas as linhas do CSV de tempo
+2. `media_memoria > 0` em todas as linhas do CSV de memoria
+3. `densidade` deve ser constante e igual a `16`
+4. Para cada `n`, devem existir exatamente 3 linhas (Naive, UnionByRank, FullTarjan)
+5. Tendencia geral esperada:
+   - Naive com maior custo de tempo e memoria
+   - UnionByRank e FullTarjan significativamente melhores
 
-Comandos uteis (opcional):
+Comandos uteis de conferencia:
 
 ```bash
-wc -l results/dsu_benchmark.csv
+$tempo = Import-Csv results/tempo/tempo_densidade_16.csv
+$mem = Import-Csv results/memoria/memoria_densidade_16.csv
+$tempo.Count
+$mem.Count
+($tempo | Select-Object -ExpandProperty densidade -Unique)
+($mem | Select-Object -ExpandProperty densidade -Unique)
 ```
 
 ---
@@ -164,16 +174,17 @@ Considerar a implementacao pronta quando:
 1. Compila sem erros
 2. Testes funcionais DSU passam nas tres variantes
 3. Kruskal retorna MST consistente nas tres variantes
-4. CSV e gerado com todas as colunas
-5. Valores do CSV passam nas verificacoes de consistencia
+4. Os 2 CSVs finais sao gerados no formato definido
+5. Valores dos CSVs finais passam nas verificacoes de consistencia
 
 ---
 
 ## 8) Proximo passo apos estes testes
 
-Com o CSV validado:
+Com os CSVs finais validados:
 
-1. Gerar graficos comparando tempo e acessos de memoria por `n` e `m`
-2. Discutir no artigo onde cada abordagem se destaca
-3. Registrar ambiente de execucao (CPU, RAM, SO, versao da JVM e flags)
-
+1. Gerar o grafico de tempo comparando as 3 variantes por `n`
+2. Gerar o grafico de memoria comparando as 3 variantes por `n`
+3. No texto do artigo, informar que a densidade foi fixa (`m = 16n`)
+4. Discutir no artigo onde cada abordagem se destaca
+5. Registrar ambiente de execucao (CPU, RAM, SO, versao da JVM e flags)
