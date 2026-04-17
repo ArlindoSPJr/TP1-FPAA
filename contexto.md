@@ -55,6 +55,18 @@ Cada CSV possui:
 
 Total: `15` linhas de dados por arquivo.
 
+### Legenda dos campos
+
+1. `variante`: nome da implementacao DSU usada no experimento (`Naive`, `UnionByRank`, `FullTarjan`).
+2. `n`: tamanho do grafo em numero de vertices.
+3. `densidade`: fator fixo usado na geracao das arestas. Neste trabalho, `densidade = 16`, logo `m = 16n`.
+4. `media_tempo_ns`: media do tempo de execucao (em nanossegundos) nas repeticoes do mesmo cenario.
+5. `media_memoria`: media de acessos a memoria da DSU nas repeticoes do mesmo cenario.
+
+Observacao:
+
+1. `m` (numero de arestas) nao aparece nos CSVs finais porque ele e derivado diretamente de `n` e `densidade` (`m = densidade x n`).
+
 ---
 
 ## 5) Coerencia com o enunciado
