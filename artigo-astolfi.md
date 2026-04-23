@@ -1,10 +1,12 @@
-## 1. Introdução
+## 1. Resumo
+
+Este trabalho apresenta uma análise empírica comparativa de três variantes da estrutura Disjoint Set Union (DSU), Naive, Union by Rank e Full Tarjan (Union by Rank combinado com Path Compression), aplicadas ao algoritmo de Kruskal para a obtenção da Árvore Geradora Mínima. Os experimentos foram conduzidos em Java, utilizando grafos conexos gerados de forma determinística, com tamanhos variando entre 2.500 e 40.000 vértices e densidade fixa de 16 arestas por vértice. Como métricas de avaliação, foram considerados o tempo de execução, medido em nanossegundos, e o número total de acessos à memória realizados pela estrutura DSU. Os resultados evidenciam de forma clara a transição entre as classes de complexidade O(n), O(log n) e O(α(n)), enquanto a variante Naive apresenta crescimento explosivo desde a primeira métrica, atingindo cerca de 11,8 bilhões de acessos à memória para n = 40.000, a variante Full Tarjan mantém desempenho praticamente constante, com aproximadamente 4 milhões de acessos no mesmo cenário. Conclui-se que a combinação das heurísticas propostas por Tarjan reduz drasticamente o custo das operações, comprovando empiricamente a relevância da escolha adequada de estruturas de dados em algoritmos de larga escala.
+
+## 2. Introdução
 
 Em diversas situações em que é necessário o gerenciamento dinâmico de conjuntos de elementos, como no processamento de imagens, redes de computadores e bioinformática, o problema fundamental consiste em manter uma partição de um conjunto finito de n elementos em subconjuntos disjuntos, permitindo identificar rapidamente a qual grupo um elemento pertence e unir dois grupos distintos. Entretanto, com o aumento da complexidade computacional, não basta apenas resolver o problema, sendo necessário fazê-lo da forma mais eficiente possível, ou seja, utilizando menos recursos e com menor tempo de execução. Nesse contexto, utilizam-se técnicas avançadas de estruturas de dados, introduzidas por Robert Tarjan, com o objetivo de analisar suas diferentes complexidades, aplicando-as diretamente no algoritmo de Kruskal.
 
-
-
-## 3. Metodologia
+## 3. Metodologia 
 
 Este capítulo descreve o conjunto experimental, incluindo o método de geração de grafos e as escolhas de implementação adotadas para analisar as variantes da estrutura DSU. O foco foi garantir um ambiente controlado e reprodutível que permitisse observar a transição das classes de complexidade de forma empírica
 
@@ -43,7 +45,7 @@ Para garantir a validade e a consistência dos experimentos, a geração de graf
 
 O uso de uma semente (`seed`) no gerador de números aleatórios assegura que, para um mesmo `n`, o grafo gerado seja idêntico em todas as repetições e para todas as variantes do DSU, isolando a performance da estrutura de dados como a única variável do experimento.
 
-## 4. Fundamentação Teórica
+## 4. Fundamentação Teórica 
 
 A estrutura Disjoint Set Union (DSU) é avaliada não pelo custo de uma operação isolada, mas pelo custo total de uma sequência de M operações, o que chamamos de análise amortizada. A implementação otimizada proposta por Tarjan é famosa por atingir uma complexidade que beira o limite teórico da computação.
 
